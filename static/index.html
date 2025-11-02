@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agent Chat</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #ffffff;
+      color: #333333;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header Section */
+    .header {
+      display: flex;
+      align-items: center;
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid #e5e7eb;
+      background: #ffffff;
+      max-width: 900px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .logo {
+      width: 48px;
+      height: 48px;
+      background: #2563eb;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .logo svg {
+      width: 28px;
+      height: 28px;
+    }
+
+    .header-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1e40af;
+      line-height: 1.2;
+    }
+
+    .header-subtitle {
+      font-size: 0.875rem;
+      color: #6b7280;
+      margin-top: 0.125rem;
+    }
+
+    /* Chat Container */
+    .chat-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+      background: #ffffff;
+      max-width: 900px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .message-wrapper {
+      display: flex;
+      margin-bottom: 1.5rem;
+      align-items: flex-start;
+    }
+
+    .message-wrapper.user {
+      justify-content: flex-end;
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .avatar.agent {
+      background: #374151;
+      margin-right: 0.75rem;
+    }
+
+    .avatar.user {
+      background: #1e40af;
+      margin-left: 0.75rem;
+    }
+
+    .avatar svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .message-content {
+      max-width: 70%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message-wrapper.user .message-content {
+      align-items: flex-end;
+    }
+
+    .message-bubble {
+      padding: 0.875rem 1rem;
+      border-radius: 12px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      line-height: 1.5;
+    }
+
+    .message-bubble.agent {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      color: #111827;
+    }
+
+    .message-bubble.user {
+      background: #3b82f6;
+      color: #ffffff;
+      border-radius: 18px;
+      padding: 0.5rem 1rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .message-bubble p {
+      margin: 0;
+    }
+
+    .message-bubble ul,
+    .message-bubble ol {
+      margin: 0.5rem 0 0 0;
+      padding-left: 1.5rem;
+    }
+
+    .message-bubble li {
+      margin: 0.25rem 0;
+    }
+
+    .message-bubble strong {
+      font-weight: 600;
+    }
+
+    .timestamp {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      margin-top: 0.25rem;
+      padding: 0 0.25rem;
+    }
+
+    .message-wrapper.user .timestamp {
+      text-align: right;
+    }
+
+    /* Input Area */
+    .input-container {
+      padding: 1rem 2rem;
+      border-top: 1px solid #e5e7eb;
+      background: #ffffff;
+      max-width: 900px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .input-wrapper {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      max-width: 100%;
+    }
+
+    .input-field {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border: 1px solid #d1d5db;
+      border-radius: 24px;
+      font-size: 0.9375rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .input-field:focus {
+      border-color: #3b82f6;
+    }
+
+    .send-button {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #3b82f6;
+      border: none;
+      color: #ffffff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+
+    .send-button:hover {
+      background: #2563eb;
+    }
+
+    .send-button:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+
+    .send-button svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* Status Messages */
+    .status-message {
+      text-align: center;
+      color: #6b7280;
+      font-size: 0.875rem;
+      font-style: italic;
+      padding: 0.5rem 0;
+      margin: 0.5rem 0;
+    }
+
+    /* Tool Messages */
+    .tool-info {
+      font-size: 0.875rem;
+      color: #6b7280;
+      margin-top: 0.5rem;
+      padding-left: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z" fill="white"/>
+          <path d="M9 9C9 10.1 9.9 11 11 11H13C14.1 11 15 10.1 15 9V8C15 6.9 14.1 6 13 6H11C9.9 6 9 6.9 9 8V9Z" fill="white"/>
+          <path d="M9 16C9 14.9 9.9 14 11 14H13C14.1 14 15 14.9 15 16V17C15 18.1 14.1 19 13 19H11C9.9 19 9 18.1 9 17V16Z" fill="white"/>
+        </svg>
+      </div>
+      <div class="header-text">
+        <h1 class="header-title">Agent Chat</h1>
+        <p class="header-subtitle">Powered by tool-calling AI</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Chat Container -->
+  <div class="chat-container" id="chatBox"></div>
+
+  <!-- Input Area -->
+  <div class="input-container">
+    <div class="input-wrapper">
+      <input 
+        type="text" 
+        id="promptInput" 
+        class="input-field" 
+        placeholder="Type your message..."
+        autocomplete="off"
+      />
+      <button id="sendBtn" class="send-button" aria-label="Send message">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2.01 21L23 12L2.01 3L2 10L17 12L2 14L2.01 21Z" fill="currentColor"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const chatBox = document.getElementById("chatBox");
+    const input = document.getElementById("promptInput");
+    const sendBtn = document.getElementById("sendBtn");
+
+    let currentAgentMsg = null;
+    let streamingTextBuffer = "";
+
+    function formatTime() {
+      const now = new Date();
+      const hours = now.getHours() % 12 || 12;
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      const ampm = now.getHours() >= 12 ? 'PM' : 'AM';
+      return `${hours}:${minutes}:${seconds} ${ampm}`;
+    }
+
+    function createAvatar(isAgent = true) {
+      const avatar = document.createElement("div");
+      avatar.className = `avatar ${isAgent ? 'agent' : 'user'}`;
+      
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("viewBox", "0 0 24 24");
+      svg.setAttribute("fill", "none");
+      svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+      
+      if (isAgent) {
+        // Robot head icon
+        const circle1 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle1.setAttribute("cx", "12");
+        circle1.setAttribute("cy", "12");
+        circle1.setAttribute("r", "10");
+        circle1.setAttribute("fill", "white");
+        
+        const circle2 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle2.setAttribute("cx", "9");
+        circle2.setAttribute("cy", "9");
+        circle2.setAttribute("r", "1.5");
+        circle2.setAttribute("fill", "#374151");
+        
+        const circle3 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle3.setAttribute("cx", "15");
+        circle3.setAttribute("cy", "9");
+        circle3.setAttribute("r", "1.5");
+        circle3.setAttribute("fill", "#374151");
+        
+        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        rect.setAttribute("x", "7");
+        rect.setAttribute("y", "13");
+        rect.setAttribute("width", "10");
+        rect.setAttribute("height", "2");
+        rect.setAttribute("rx", "1");
+        rect.setAttribute("fill", "#374151");
+        
+        svg.appendChild(circle1);
+        svg.appendChild(circle2);
+        svg.appendChild(circle3);
+        svg.appendChild(rect);
+      } else {
+        // User icon (person silhouette)
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("cx", "12");
+        circle.setAttribute("cy", "8");
+        circle.setAttribute("r", "3");
+        circle.setAttribute("fill", "white");
+        
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", "M12 14C8.67 14 6 15.33 6 17V20H18V17C18 15.33 15.33 14 12 14Z");
+        path.setAttribute("fill", "white");
+        
+        svg.appendChild(circle);
+        svg.appendChild(path);
+      }
+      
+      avatar.appendChild(svg);
+      return avatar;
+    }
+
+    function addMessage(text, isUser = false, isStatus = false) {
+      if (isStatus) {
+        const statusDiv = document.createElement("div");
+        statusDiv.className = "status-message";
+        statusDiv.textContent = text;
+        chatBox.appendChild(statusDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        return statusDiv;
+      }
+
+      const wrapper = document.createElement("div");
+      wrapper.className = `message-wrapper ${isUser ? 'user' : ''}`;
+
+      const avatar = createAvatar(!isUser);
+      
+      const messageContent = document.createElement("div");
+      messageContent.className = "message-content";
+
+      const bubble = document.createElement("div");
+      bubble.className = `message-bubble ${isUser ? 'user' : 'agent'}`;
+      
+      // Handle HTML content or plain text
+      if (text.includes('<') && text.includes('>')) {
+        bubble.innerHTML = text;
+      } else {
+        // Format text: convert markdown-style bold to HTML
+        const formattedText = text
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\n/g, '<br>');
+        bubble.innerHTML = formattedText;
+      }
+
+      const timestamp = document.createElement("div");
+      timestamp.className = "timestamp";
+      timestamp.textContent = formatTime();
+
+      messageContent.appendChild(bubble);
+      messageContent.appendChild(timestamp);
+
+      if (isUser) {
+        wrapper.appendChild(messageContent);
+        wrapper.appendChild(avatar);
+      } else {
+        wrapper.appendChild(avatar);
+        wrapper.appendChild(messageContent);
+      }
+
+      chatBox.appendChild(wrapper);
+      chatBox.scrollTop = chatBox.scrollHeight;
+      
+      return bubble;
+    }
+
+    function appendToAgentMessage(text) {
+      if (!currentAgentMsg) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "message-wrapper";
+
+        const avatar = createAvatar(true);
+        const messageContent = document.createElement("div");
+        messageContent.className = "message-content";
+
+        const bubble = document.createElement("div");
+        bubble.className = "message-bubble agent";
+        bubble.innerHTML = "";
+
+        const timestamp = document.createElement("div");
+        timestamp.className = "timestamp";
+        timestamp.textContent = formatTime();
+
+        messageContent.appendChild(bubble);
+        messageContent.appendChild(timestamp);
+        wrapper.appendChild(avatar);
+        wrapper.appendChild(messageContent);
+
+        chatBox.appendChild(wrapper);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        
+        currentAgentMsg = bubble;
+        streamingTextBuffer = "";
+      }
+      
+      streamingTextBuffer += text;
+      // Format text with basic markdown support
+      const formattedText = streamingTextBuffer
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n/g, '<br>');
+      currentAgentMsg.innerHTML = formattedText;
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function sendMessage() {
+      const userInput = input.value.trim();
+      if (!userInput) return;
+
+      // Disable input while processing
+      input.disabled = true;
+      sendBtn.disabled = true;
+
+      // Add user message
+      addMessage(userInput, true);
+      input.value = "";
+      currentAgentMsg = null;
+      streamingTextBuffer = "";
+
+      // Connect to backend WebSocket
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${wsProtocol}//${window.location.host}/ws?prompt=${encodeURIComponent(userInput)}`;
+      const ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        console.log("WebSocket connected");
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+
+          switch (data.status) {
+            case "thinking":
+              addMessage(data.message, false, true);
+              break;
+            case "plan":
+              // Optionally show plan
+              break;
+            case "tool_calling":
+              addMessage(`Calling ${data.tool}...`, false, true);
+              break;
+            case "tool_result":
+              // Optionally show tool results
+              break;
+            case "tool_error":
+              addMessage(`Error: ${data.error}`, false, true);
+              break;
+            case "stream_start":
+              currentAgentMsg = null;
+              streamingTextBuffer = "";
+              break;
+            case "done":
+              ws.close();
+              input.disabled = false;
+              sendBtn.disabled = false;
+              input.focus();
+              break;
+          }
+        } catch (parseError) {
+          // Token streaming — append inline
+          if (event.data && typeof event.data === 'string') {
+            appendToAgentMessage(event.data);
+          }
+        }
+      };
+
+      ws.onerror = (err) => {
+        console.error("WebSocket error:", err);
+        addMessage("Connection error occurred", false, true);
+        input.disabled = false;
+        sendBtn.disabled = false;
+      };
+
+      ws.onclose = () => {
+        input.disabled = false;
+        sendBtn.disabled = false;
+        input.focus();
+        currentAgentMsg = null;
+        streamingTextBuffer = "";
+      };
+    }
+
+    sendBtn.addEventListener("click", sendMessage);
+
+    input.addEventListener("keypress", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // Focus input on load
+    input.focus();
+  </script>
+</body>
+</html>
