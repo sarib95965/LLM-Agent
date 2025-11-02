@@ -6,7 +6,7 @@ from utils.config import settings
 
 class WebSearchTool(Tool):
     name = "WebSearchTool"
-    description = "Perform a real web search using Google Custom Search API."
+    description = "Perform a real web search using Google Custom Search API. Arguments should include 'query' (str) and optional 'num_results' (int)."
 
     def __init__(self):
         """
